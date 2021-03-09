@@ -13,7 +13,6 @@
 uint32_t Index = 0;
 uint8_t Playing = 0;
 uint8_t Inst = 0;
-uint32_t SongIndex;
 
 const uint16_t Wave[64] = {  
   1024,1122,1219,1314,1407,1495,1580,1658,1731,1797,1855,
@@ -34,16 +33,6 @@ const unsigned short TrumpetWave[64] = {
 	1065, 1052, 992
 };
 
-void SongInit() {
-	for(int i = 0; i < SIZE; i++) {
-		struct Note n = {pitches[i], durations[i]};
-		Notes[i] = n;
-	}
-}
-
-void setIndexZero() {
-  SongIndex = 0;
-}
 
 void playPause() {
 	Playing ^= 1;
@@ -76,13 +65,6 @@ void musicPlay() {
 			break;
 	}
 }
-
-void switchNote() {
-	TIMER0_TAILR_R = Notes[SongIndex].duration;
-	NVIC_ST_RELOAD_R = Notes[SongIndex].pitch;
-	SongIndex = (SongIndex+1)%SIZE;
-}
-
 //debug code
 int main(void){ 
   PLL_Init(Bus80MHz);              // bus clock at 80 MHz
@@ -91,7 +73,7 @@ int main(void){
 	SongInit();
 	DAC_Init(0);
 	SysTickInit(&musicPlay);
-	Timer0A_Init(&switchNote);
+	Timer0A_Init();
   EnableInterrupts();
 	
   while(1){
