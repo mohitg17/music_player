@@ -13,6 +13,7 @@
 #define G 3189   // 391.995 Hz
 
 #define half 80000000
+#define dottedquarter 60000000
 #define quarter 40000000
 #define eighth 20000000
 
@@ -41,10 +42,10 @@ uint32_t pitches[SIZE] = {
 };
 
 uint32_t durations[SIZE] = {
-	quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, half,
-	quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, half,
+	quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, dottedquarter, eighth, half,
+	quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, dottedquarter, eighth, half,
 	quarter, quarter, quarter, quarter, quarter, eighth, eighth, quarter, quarter, quarter, eighth, eighth, quarter, quarter, quarter, quarter, half,
-	quarter, quarter, quarter, quarter, quarter, quarter, quarter,quarter, quarter, quarter, quarter, quarter, quarter, quarter, half
+	quarter, quarter, quarter, quarter, quarter, quarter, quarter,quarter, quarter, quarter, quarter, quarter, dottedquarter, eighth, half
 };
 
 #endif

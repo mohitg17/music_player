@@ -31,7 +31,7 @@ void SongInit() {
 void SysTickInit(void (*musicPlay)()){
 	MusicPlay = musicPlay;
 	NVIC_ST_CTRL_R = 0;                   // disable SysTick during setup
-  NVIC_ST_RELOAD_R = 0;  			      // maximum reload value
+  NVIC_ST_RELOAD_R = 1;  			      // maximum reload value
   NVIC_SYS_PRI3_R = ((NVIC_SYS_PRI3_R & 0x00FFFFFF) | 0x20000000);
 //	NVIC_ST_CTRL_R = 0x07;								// enable SysTick with core clock
 }
