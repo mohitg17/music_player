@@ -19,13 +19,11 @@
 
 const uint16_t SIZE = 62;
 
-void Timer0A_Init(uint32_t duration);
+void Timer0A_Init(void (*switchNote)());
 void SysTickInit(void (*musicPlay)());
-void SongInit();
 
-void setIndexZero();
-void enableTimers();
-void disableTimers();
+void enableTimers(void);
+void disableTimers(void);
 
 struct Note {
 	uint32_t pitch;
