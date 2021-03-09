@@ -11,7 +11,7 @@
 // Initialize 12-bit DAC, called once 
 // Input: none
 // Output: none
-void DAC_Init(void);
+void DAC_Init(uint16_t data);
 
 
 // **************DAC_Out*********************
