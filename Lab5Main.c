@@ -13,6 +13,7 @@
 #include "Music.h"
 
 uint32_t Index = 0;
+uint32_t harmonyIndex = 0;
 uint8_t Playing = 0;
 uint8_t Inst = 0;
 
@@ -71,16 +72,33 @@ void musicPlay() {
 	Index = (Index+1)%64; // 0 to 63
 	switch(Inst) {
 		case 0:
-			DAC_Out(Wave[Index]);
+			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
 			break;
 		case 1:
-			DAC_Out(TrumpetWave[Index]);
+			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
 			break;
 		case 2:
-			DAC_Out(Bassoon64[Index]);
+			DAC_Out(Bassoon64[Index]+TrumpetWave[harmonyIndex]);
 			break;
 		case 3:
-			DAC_Out(Oboe64[Index]);
+			DAC_Out(Oboe64[Index]+TrumpetWave[harmonyIndex]);
+	}
+}
+
+void harmonyPlay() {
+	harmonyIndex = (harmonyIndex+1)%64; // 0 to 63
+	switch(Inst) {
+		case 0:
+			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
+			break;
+		case 1:
+			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
+			break;
+		case 2:
+			DAC_Out(Bassoon64[Index]+TrumpetWave[harmonyIndex]);
+			break;
+		case 3:
+			DAC_Out(Oboe64[Index]+TrumpetWave[harmonyIndex]);
 	}
 }
 
@@ -104,6 +122,7 @@ int main(void){
 	DAC_Init(0);
 	SysTickInit(&musicPlay);
 	Timer0A_Init();
+	Timer2A_Init(&harmonyPlay);
 //	TExaS_Init(SCOPE_PD2,80000000);
   EnableInterrupts();
 	LED_Init();
