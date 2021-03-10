@@ -23,15 +23,15 @@
 
 void (*MusicPlay)(void);
 void (*HarmonyPlay)(void);
+uint16_t (*Envelope)(uint32_t, uint32_t, uint32_t, uint16_t);
 
 const uint16_t SIZE = 62;
 uint32_t SongIndex = 0;
 
-
 struct Note {
 	uint32_t pitch;
 	uint32_t duration;
-	uint32_t harmony;
+//	uint32_t harmony;
 };
 
 struct Note Notes[SIZE];
@@ -43,12 +43,12 @@ uint32_t pitches[SIZE] = {
   E, E, F, G, G, F, E, D, C0, C0, D, E, D, C0, C0
 };
 
-uint32_t harmony[SIZE] = {
-	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, C0, B0, B0,
-	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, B0, A0, A0,
-	B0, B0, C0, A0, B0, C0, D, C0, A0, B0, C0, D, C0, A0, B0, C0,
-	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, B0, A0, A0
-};
+//uint32_t harmony[SIZE] = {
+//	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, C0, B0, B0,
+//	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, B0, A0, A0,
+//	B0, B0, C0, A0, B0, C0, D, C0, A0, B0, C0, D, C0, A0, B0, C0,
+//	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, B0, A0, A0
+//};
 
 uint32_t durations[SIZE] = {
 	quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, quarter, dottedquarter, eighth, half,
@@ -59,7 +59,8 @@ uint32_t durations[SIZE] = {
 
 void SongInit() {
 	for(int i = 0; i < SIZE; i++) {
-		struct Note n = {pitches[i], durations[i], harmony[i]};
+			struct Note n = {pitches[i], durations[i]};
+//		struct Note n = {pitches[i], durations[i], harmony[i]};
 		Notes[i] = n;
 	}
 }
@@ -70,20 +71,20 @@ void setIndexZero() {
 
 void disableTimers() {
   TIMER0_CTL_R &= ~TIMER_CTL_TAEN; 			// disable timer0A
-	TIMER2_CTL_R = 0x00000000;            // disable timer2A
+//	TIMER2_CTL_R = 0x00000000;            // disable timer2A
 	NVIC_ST_CTRL_R = 0;                   // disable SysTick
 }
 
 void enableTimers() {
   TIMER0_CTL_R |= TIMER_CTL_TAEN;    		// enable timer0A 32-b, periodic, interrupts
-	TIMER2_CTL_R = 0x00000001;            // enable timer2A
+//	TIMER2_CTL_R = 0x00000001;            // enable timer2A
 	NVIC_ST_CTRL_R = 0x07;								// enable SysTick with core clock
 }
 
 void SysTickInit(void (*musicPlay)()){
 	MusicPlay = musicPlay;
 	NVIC_ST_CTRL_R = 0;                   // disable SysTick during setup
-  NVIC_ST_RELOAD_R = 3792;  			      // maximum reload value
+  NVIC_ST_RELOAD_R = E;  			      // maximum reload value
   NVIC_SYS_PRI3_R = ((NVIC_SYS_PRI3_R & 0x00FFFFFF) | 0x20000000);
 	NVIC_ST_CTRL_R = 0x07;								// enable SysTick with core clock
 }
@@ -92,7 +93,8 @@ void SysTick_Handler() {
 	MusicPlay();
 }
 
-void Timer0A_Init(){
+void Timer0A_Init(uint16_t (*envelope)(uint32_t, uint32_t, uint32_t, uint16_t)){
+	Envelope = envelope;
   SYSCTL_RCGCTIMER_R |= 0x01;      // 0) activate timer0
   TIMER0_CTL_R &= ~0x00000001;     // 1) disable timer0A during setup
   TIMER0_CFG_R = 0x00000000;       // 2) configure for 32-bit timer mode
@@ -108,11 +110,9 @@ void Timer0A_Init(){
 
 void Timer0A_Handler(void){
   TIMER0_ICR_R = TIMER_ICR_TATOCINT;           // acknowledge timer0A timeout
-	TIMER0_TAILR_R = Notes[SongIndex].duration;
-	NVIC_ST_RELOAD_R = Notes[SongIndex].pitch;
-	TIMER2_TAILR_R = Notes[SongIndex].harmony;
-	
-	SongIndex = (SongIndex+1)%SIZE;
+	TIMER0_TAILR_R = 5000000;
+	SongIndex = Envelope(Notes[SongIndex].duration, Notes[SongIndex].pitch, SongIndex, SIZE);
+//	TIMER2_TAILR_R = Notes[SongIndex].harmony;
 }
 
 // ***************** Timer2A_Init ****************
@@ -121,25 +121,25 @@ void Timer0A_Handler(void){
 //          period in units (1/clockfreq)
 //          priority 0 (highest) to 7 (lowest)
 // Outputs: none
-void Timer2A_Init(void (*harmonyPlay)()){
-	HarmonyPlay = harmonyPlay;
-  SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
-  TIMER2_CTL_R = 0x00000000;    // 1) disable timer2A during setup
-  TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
-  TIMER2_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
-  TIMER2_TAILR_R = 7999;    // 4) reload value
-  TIMER2_TAPR_R = 0;            // 5) bus clock resolution
-  TIMER2_ICR_R = 0x00000001;    // 6) clear timer2A timeout flag
-  TIMER2_IMR_R = 0x00000001;    // 7) arm timeout interrupt
-  NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF)|(2<<29); // priority  
-// interrupts enabled in the main program after all devices initialized
-// vector number 39, interrupt number 23
-  NVIC_EN0_R = 1<<23;           // 9) enable IRQ 23 in NVIC
-  TIMER2_CTL_R = 0x00000001;    // 10) enable timer2A
-}
+//void Timer2A_Init(void (*harmonyPlay)()){
+//	HarmonyPlay = harmonyPlay;
+//  SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
+//  TIMER2_CTL_R = 0x00000000;    // 1) disable timer2A during setup
+//  TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
+//  TIMER2_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
+//  TIMER2_TAILR_R = C0;    // 4) reload value
+//  TIMER2_TAPR_R = 0;            // 5) bus clock resolution
+//  TIMER2_ICR_R = 0x00000001;    // 6) clear timer2A timeout flag
+//  TIMER2_IMR_R = 0x00000001;    // 7) arm timeout interrupt
+//  NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF)|(2<<29); // priority  
+//// interrupts enabled in the main program after all devices initialized
+//// vector number 39, interrupt number 23
+//  NVIC_EN0_R = 1<<23;           // 9) enable IRQ 23 in NVIC
+//  TIMER2_CTL_R = 0x00000001;    // 10) enable timer2A
+//}
 
-void Timer2A_Handler(){
-  TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge TIMER2A timeout
-	HarmonyPlay();
-}
+//void Timer2A_Handler(){
+//  TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge TIMER2A timeout
+//	HarmonyPlay();
+//}
 

@@ -13,10 +13,13 @@
 #include "Music.h"
 
 uint32_t Index = 0;
-uint32_t harmonyIndex = 0;
+//uint32_t harmonyIndex = 0;
 uint8_t Playing = 0;
 uint8_t Inst = 0;
+uint8_t Counter = 0;
+uint8_t scale[16] = {8, 4, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 6, 7, 8}; 
 
+	
 const uint16_t Wave[64] = {  
   1024,1122,1219,1314,1407,1495,1580,1658,1731,1797,1855,
   1906,1948,1981,2005,2019,2024,2019,2005,1981,1948,1906,
@@ -72,35 +75,63 @@ void musicPlay() {
 	Index = (Index+1)%64; // 0 to 63
 	switch(Inst) {
 		case 0:
-			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
+			DAC_Out((Wave[Index]-1250)/scale[Counter] + 1250);
 			break;
 		case 1:
-			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
+			DAC_Out((TrumpetWave[Index]-650)/scale[Counter] + 650);
 			break;
 		case 2:
-			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
+			DAC_Out((Bassoon64[Index]-1000)/scale[Counter] + 1000);
 			break;
 		case 3:
-			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
+			DAC_Out((Oboe64[Index]-1000)/scale[Counter] + 1000);
+			break;
 	}
 }
 
-void harmonyPlay() {
-	harmonyIndex = (harmonyIndex+1)%64; // 0 to 63
-	switch(Inst) {
-		case 0:
-			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
-			break;
-		case 1:
-			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
-			break;
-		case 2:
-			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
-			break;
-		case 3:
-			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
+uint16_t envelope(uint32_t duration, uint32_t pitch, uint32_t songIndex, uint16_t size) {
+	Counter += 1;
+	if(Counter == duration/5000000) {
+		Counter = 0;
+		NVIC_ST_RELOAD_R = pitch;
+		songIndex = (songIndex+1)%size;
 	}
+	return songIndex;
 }
+
+//void musicPlay() {
+//	Index = (Index+1)%64; // 0 to 63
+//	switch(Inst) {
+//		case 0:
+//			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
+//			break;
+//		case 1:
+//			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
+//			break;
+//		case 2:
+//			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
+//			break;
+//		case 3:
+//			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
+//	}
+//}
+
+//void harmonyPlay() {
+//	harmonyIndex = (harmonyIndex+1)%64; // 0 to 63
+//	switch(Inst) {
+//		case 0:
+//			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
+//			break;
+//		case 1:
+//			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
+//			break;
+//		case 2:
+//			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
+//			break;
+//		case 3:
+//			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
+//	}
+//}
 
 void LED_Init(void) {
 	SYSCTL_RCGCGPIO_R |= 0x00000020;
@@ -112,7 +143,6 @@ void LED_Init(void) {
 }
 
 
-
 //debug code
 int main(void){ 
   PLL_Init(Bus80MHz);              // bus clock at 80 MHz
@@ -121,8 +151,8 @@ int main(void){
 	SongInit();
 	DAC_Init(0);
 	SysTickInit(&musicPlay);
-	Timer0A_Init();
-	Timer2A_Init(&harmonyPlay);
+	Timer0A_Init(&envelope);
+	// Timer2A_Init(&harmonyPlay);
 	TExaS_Init(SCOPE_PD2,80000000);
   EnableInterrupts();
 	LED_Init();
