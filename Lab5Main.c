@@ -78,10 +78,10 @@ void musicPlay() {
 			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
 			break;
 		case 2:
-			DAC_Out(Bassoon64[Index]+TrumpetWave[harmonyIndex]);
+			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
 			break;
 		case 3:
-			DAC_Out(Oboe64[Index]+TrumpetWave[harmonyIndex]);
+			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
 	}
 }
 
@@ -95,10 +95,10 @@ void harmonyPlay() {
 			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
 			break;
 		case 2:
-			DAC_Out(Bassoon64[Index]+TrumpetWave[harmonyIndex]);
+			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
 			break;
 		case 3:
-			DAC_Out(Oboe64[Index]+TrumpetWave[harmonyIndex]);
+			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
 	}
 }
 
@@ -123,7 +123,7 @@ int main(void){
 	SysTickInit(&musicPlay);
 	Timer0A_Init();
 	Timer2A_Init(&harmonyPlay);
-//	TExaS_Init(SCOPE_PD2,80000000);
+	TExaS_Init(SCOPE_PD2,80000000);
   EnableInterrupts();
 	LED_Init();
 	GPIO_PORTF_DATA_R = 0x04;

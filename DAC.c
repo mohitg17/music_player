@@ -25,5 +25,5 @@ void DAC_Init(uint16_t data){
 
 void DAC_Out(uint16_t code){
   while((SSI1_SR_R&0x00000002)==0){};  // wait until room in FIFO
-  SSI1_DR_R = (3.3/3) * code; // data out
+  SSI1_DR_R = code; // data out
 } 

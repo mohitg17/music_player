@@ -19,6 +19,8 @@
 #define quarter 40000000
 #define eighth 20000000
 
+#define A0 3551
+
 void (*MusicPlay)(void);
 void (*HarmonyPlay)(void);
 
@@ -29,6 +31,7 @@ uint32_t SongIndex = 0;
 struct Note {
 	uint32_t pitch;
 	uint32_t duration;
+	uint32_t harmony;
 };
 
 struct Note Notes[SIZE];
@@ -41,10 +44,10 @@ uint32_t pitches[SIZE] = {
 };
 
 uint32_t harmony[SIZE] = {
-	C0, C0, D, E, E, D, C0, B0, 0, 0, B0, C0, C0, 0, B0,
-	C0, C0, D, E, E, D, C0, B0, 0, 0, B0, C0, B0, 0, 0,
-	B0, B0, C0, 0, B0, 0, 0, C0, 0, B0, 0, 0, C0, 0, 0, 0,
-	C0, C0, D, E, E, D, C0, B0, 0, 0, B0, C0, B0, 0, 0
+	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, C0, B0, B0,
+	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, B0, A0, A0,
+	B0, B0, C0, A0, B0, C0, D, C0, A0, B0, C0, D, C0, A0, B0, C0,
+	C0, C0, D, E, E, D, C0, B0, A0, A0, B0, C0, B0, A0, A0
 };
 
 uint32_t durations[SIZE] = {
@@ -56,7 +59,7 @@ uint32_t durations[SIZE] = {
 
 void SongInit() {
 	for(int i = 0; i < SIZE; i++) {
-		struct Note n = {pitches[i], durations[i]};
+		struct Note n = {pitches[i], durations[i], harmony[i]};
 		Notes[i] = n;
 	}
 }
@@ -107,6 +110,8 @@ void Timer0A_Handler(void){
   TIMER0_ICR_R = TIMER_ICR_TATOCINT;           // acknowledge timer0A timeout
 	TIMER0_TAILR_R = Notes[SongIndex].duration;
 	NVIC_ST_RELOAD_R = Notes[SongIndex].pitch;
+	TIMER2_TAILR_R = Notes[SongIndex].harmony;
+	
 	SongIndex = (SongIndex+1)%SIZE;
 }
 
