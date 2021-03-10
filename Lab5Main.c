@@ -6,6 +6,8 @@
 #include "../inc/PLL.h"
 #include "../inc/CortexM.h"
 #include "../inc/LaunchPad.h"
+#include "../inc/ST7735.h"
+#include "../inc/Texas.h"
 #include "Switch.h"
 #include "DAC.h"
 #include "Music.h"
@@ -33,6 +35,17 @@ const unsigned short TrumpetWave[64] = {
 	1065, 1052, 992
 };
 
+const unsigned short Bassoon64[64]={
+1068, 1169, 1175, 1161, 1130, 1113, 1102, 1076, 1032, 985, 963, 987, 1082, 1343, 1737, 1863, 
+1575, 1031, 538, 309, 330, 472, 626, 807, 1038, 1270, 1420, 1461, 1375, 1201, 1005, 819, 658, 
+532, 496, 594, 804, 1055, 1248, 1323, 1233, 1049, 895, 826, 826, 850, 862, 861, 899, 961, 1006, 
+1023, 1046, 1092, 1177, 1224, 1186, 1133, 1098, 1102, 1109, 1076, 1027, 1003};
+
+const unsigned short Oboe64[64]={
+1024, 1024, 1014, 1008, 1022, 1065, 1093, 1006, 858, 711, 612, 596, 672, 806, 952, 1074, 1154, 1191, 
+1202, 1216, 1236, 1255, 1272, 1302, 1318, 1299, 1238, 1140, 1022, 910, 827, 779, 758, 757, 782, 856, 
+972, 1088, 1177, 1226, 1232, 1203, 1157, 1110, 1067, 1028, 993, 958, 929, 905, 892, 900, 940, 1022, 
+1125, 1157, 1087, 965, 836, 783, 816, 895, 971, 1017};
 
 void playPause() {
 	Playing ^= 1;
@@ -51,7 +64,7 @@ void rewind() {
 }
 
 void setInst() {
-	Inst = (Inst + 1)%2;
+	Inst = (Inst + 1)%4;
 }
 
 void musicPlay() {
@@ -63,8 +76,25 @@ void musicPlay() {
 		case 1:
 			DAC_Out(TrumpetWave[Index]);
 			break;
+		case 2:
+			DAC_Out(Bassoon64[Index]);
+			break;
+		case 3:
+			DAC_Out(Oboe64[Index]);
 	}
 }
+
+void LED_Init(void) {
+	SYSCTL_RCGCGPIO_R |= 0x00000020;
+	while((SYSCTL_RCGCGPIO_R & 0x00000020) == 0) {};
+		
+	GPIO_PORTF_DIR_R = 0x04;			// make PF2 output
+	GPIO_PORTF_DEN_R = 0x04;			// enable digital I/O on PF2
+	GPIO_PORTF_PCTL_R &= ~0x00000F00; // configure PF2 as GPIO
+}
+
+
+
 //debug code
 int main(void){ 
   PLL_Init(Bus80MHz);              // bus clock at 80 MHz
@@ -74,9 +104,13 @@ int main(void){
 	DAC_Init(0);
 	SysTickInit(&musicPlay);
 	Timer0A_Init();
+//	TExaS_Init(SCOPE_PD2,80000000);
   EnableInterrupts();
+	LED_Init();
+	GPIO_PORTF_DATA_R = 0x04;
 	
+
   while(1){
-    WaitForInterrupt();
-  }
+		WaitForInterrupt();
+	}
 }

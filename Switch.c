@@ -6,14 +6,16 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "../inc/tm4c123gh6pm.h"
+#include "../inc/CortexM.h"
+#include "../inc/LaunchPad.h"
 
 void (*PlayPause)();
 void (*Rw)();
 void (*SetInst)();
 
 static void GPIOArm(){
-  GPIO_PORTB_ICR_R = 0xBC;      // (e) clear flag
-  GPIO_PORTB_IM_R |= 0xBC;      // (f) arm interrupts
+  GPIO_PORTB_ICR_R = 0x38;      // (e) clear flag
+  GPIO_PORTB_IM_R |= 0x38;      // (f) arm interrupts
   NVIC_PRI0_R = (NVIC_PRI0_R&0xFFF00FFF)|0x00002000; // (g) priority 1
   NVIC_EN0_R = 0x00000002;      // (h) enable interrupt 1 in NVIC	
 }
@@ -26,19 +28,19 @@ void SwitchInit(void(*playPause)(), void(*rw)(), void(*setInst)()){
 	Rw = rw;
 	SetInst = setInst;
 
-	GPIO_PORTB_CR_R = 0xB0;				// allow changes to PB7-4
-	GPIO_PORTB_AMSEL_R &= ~0xB0;	// disable analog functionality on PB7-4	
-	GPIO_PORTB_DIR_R = 0x40;			// make PB7-4 inputs
-	GPIO_PORTB_DEN_R = 0xB0;			// enable digital I/O on PB7-3
-	GPIO_PORTB_PCTL_R &= ~0xFFFF0000; // configure PB7-4 as GPIO
-  GPIO_PORTB_IS_R &= ~0xB0;     // (d) PB7-3 is edge-sensitive
-  GPIO_PORTB_IBE_R &= ~0xB0;    //     PB7-3 is not both edges
-  GPIO_PORTB_IEV_R |= 0xB0;     //     PB7-3 rising edge event
-  GPIO_PORTB_ICR_R = 0xB0;      // (e) clear flag7-4
-	GPIO_PORTB_IM_R |= 0xB0;      // (f) arm interrupt on PB7-4 *** No IME bit as mentioned in Book ***
+	GPIO_PORTB_CR_R = 0x38;				// allow changes to PB5-3
+	GPIO_PORTB_AMSEL_R &= ~0x38;	// disable analog functionality on PB5-3	
+	GPIO_PORTB_DIR_R = 0xC7;			// make PB5-3 inputs
+	GPIO_PORTB_DEN_R = 0x38;			// enable digital I/O on PB5-3
+	GPIO_PORTB_PCTL_R &= ~0x00FFF000; // configure PB5-3 as GPIO
+  GPIO_PORTB_IS_R &= ~0x38;     // (d) PB7-3 is edge-sensitive
+  GPIO_PORTB_IBE_R &= ~0x38;    //     PB7-3 is not both edges
+  GPIO_PORTB_IEV_R |= 0x38;     //     PB7-3 rising edge event
+  GPIO_PORTB_ICR_R = 0x38;      // (e) clear flag5-3
+	GPIO_PORTB_IM_R |= 0x38;      // (f) arm interrupt on PB5-3 *** No IME bit as mentioned in Book ***
 
 	NVIC_PRI0_R = (NVIC_PRI0_R&0xFFF00FFF)|0x00002000; // (g) priority 1
-  NVIC_EN0_R = 0x00000002;      // (h) enable interrupt 1 in NVIC	
+  NVIC_EN0_R = 0x00000002;      // (h) enable interrupt 1 in NVIC
 }
 
 // ***************** TIMER1A_Init ****************
@@ -69,8 +71,8 @@ void Timer1A_Handler(void){
 }
 
 void GPIOPortB_Handler(void){
-	if(GPIO_PORTB_RIS_R & 0x80) {    // if SW3 pressed, play/pause track
-		GPIO_PORTB_IM_R &= ~0x80;
+	if(GPIO_PORTB_RIS_R & 0x08) {    // if SW3 pressed, play/pause track
+		GPIO_PORTB_IM_R &= ~0x08;
 		(*PlayPause)();
 		Timer1A_Init();                // one-shot timer initialization for debouncing
 	}
