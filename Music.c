@@ -40,13 +40,15 @@ struct Note {
 
 struct Note Notes[SIZE];
 
-//uint32_t pitches[SIZE] = {
-//	E, E, F, G, G, F, E, D, C0, C0, D, E, E, D, D,
-//	E, E, F, G, G, F, E, D, C0, C0, D, E, D, C0, C0,
-//	D, D, E, C0, D, E, F, E, C0, D, E, F, E, D, C0, D, G0,
-//  E, E, F, G, G, F, E, D, C0, C0, D, E, D, C0, C0
+// no harmony
+//uint32_t harmony[SIZE] = {
+//	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+//	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+//	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+//	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 //};
 
+// octave lower
 //uint32_t harmony[SIZE] = {
 //	C0, C0, D, E, E, D, C0, B0, E0, E0, B0, C0, C0, B0, B0,
 //	C0, C0, D, E, E, D, C0, B0, E0, E0, B0, C0, B0, E0, E0,
@@ -54,18 +56,28 @@ struct Note Notes[SIZE];
 //	C0, C0, D, E, E, D, C0, B0, E0, E0, B0, C0, B0, E0, E0,
 //};
 
-uint32_t pitches[SIZE] = {
-	E1, E1, F1, G1, G1, F1, E1, D1, C, C, D1, E1, E1, D1, D1,
-	E1, E1, F1, G1, G1, F1, E1, D1, C, C, D1, E1, D1, C, C,
-	D1, D1, E1, C, D1, E1, F1, E1, C, D1, E1, F1, E1, D1, C, D1, G,
-	E1, E1, F1, G1, G1, F1, E1, D1, C, C, D1, E1, D1, C, C,
-};
-
+// actual harmony
 uint32_t harmony[SIZE] = {
 	C, C, D1, E1, E1, D1, C, B, E, E, B, C, C, B, B,
 	C, C, D1, E1, E1, D1, C, B, E, E, B, C, B, E, E,
 	B, B, C, E, B, C, D1, C, E, B, C, D1, C, B, E, B, G1,
 	C, C, D1, E1, E1, D1, C, B, E, E, B, C, B, E, E,
+};
+
+// octave lower
+//uint32_t pitches[SIZE] = {
+//	E, E, F, G, G, F, E, D, C0, C0, D, E, E, D, D,
+//	E, E, F, G, G, F, E, D, C0, C0, D, E, D, C0, C0,
+//	D, D, E, C0, D, E, F, E, C0, D, E, F, E, D, C0, D, G0,
+//  E, E, F, G, G, F, E, D, C0, C0, D, E, D, C0, C0
+//};
+
+// actual melody
+uint32_t pitches[SIZE] = {
+	E1, E1, F1, G1, G1, F1, E1, D1, C, C, D1, E1, E1, D1, D1,
+	E1, E1, F1, G1, G1, F1, E1, D1, C, C, D1, E1, D1, C, C,
+	D1, D1, E1, C, D1, E1, F1, E1, C, D1, E1, F1, E1, D1, C, D1, G,
+	E1, E1, F1, G1, G1, F1, E1, D1, C, C, D1, E1, D1, C, C,
 };
 
 uint32_t durations[SIZE] = {
@@ -127,7 +139,7 @@ void Timer0A_Init(){
 void Timer0A_Handler(void){
   TIMER0_ICR_R = TIMER_ICR_TATOCINT;           // acknowledge timer0A timeout
 	TIMER0_TAILR_R = Notes[SongIndex].duration;
-		TIMER2_TAILR_R = Notes[SongIndex].harmony;
+	TIMER2_TAILR_R = Notes[SongIndex].harmony;
 	NVIC_ST_RELOAD_R = Notes[SongIndex].pitch;
 	SongIndex = (SongIndex+1)%SIZE;
 }
