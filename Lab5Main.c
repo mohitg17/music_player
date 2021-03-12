@@ -18,12 +18,14 @@ uint8_t Playing = 0;
 uint8_t Inst = 0;
 
 const uint16_t Wave[64] = {  
-  1024,1122,1219,1314,1407,1495,1580,1658,1731,1797,1855,
-  1906,1948,1981,2005,2019,2024,2019,2005,1981,1948,1906,
-  1855,1797,1731,1658,1580,1495,1407,1314,1219,1122,1024,
-  926,829,734,641,553,468,390,317,251,193,142,
-  100,67,43,29,24,29,43,67,100,142,193,
-  251,317,390,468,553,641,734,829,926
+2048,2249,2448,2643,2832,3013,3186,3347,
+3496,3631,3751,3854,3940,4008,4057,4086,
+4096,4086,4057,4008,3940,3854,3751,3631,
+3496,3347,3186,3013,2832,2643,2448,2249,
+2048,1847,1648,1453,1264,1083,910,749,
+600,465,345,242,156,88,39,10,
+0,10,39,88,156,242,345,465,
+600,749,910,1083,1264,1453,1648,1847,
 }; 
 
 const unsigned short TrumpetWave[64] = {
@@ -72,35 +74,35 @@ void musicPlay() {
 	Index = (Index+1)%64; // 0 to 63
 	switch(Inst) {
 		case 0:
-			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
+			DAC_Out(Wave[Index]);
 			break;
 		case 1:
-			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
+			DAC_Out(TrumpetWave[Index]);
 			break;
 		case 2:
-			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
+			DAC_Out(Bassoon64[Index]);
 			break;
 		case 3:
-			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
+			DAC_Out(Oboe64[Index]);
 	}
 }
 
-void harmonyPlay() {
-	harmonyIndex = (harmonyIndex+1)%64; // 0 to 63
-	switch(Inst) {
-		case 0:
-			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
-			break;
-		case 1:
-			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
-			break;
-		case 2:
-			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
-			break;
-		case 3:
-			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
-	}
-}
+//void harmonyPlay() {
+//	harmonyIndex = (harmonyIndex+1)%64; // 0 to 63
+////	switch(Inst) {
+////		case 0:
+////			DAC_Out(Wave[Index]+Wave[harmonyIndex]);
+////			break;
+////		case 1:
+////			DAC_Out(TrumpetWave[Index]+TrumpetWave[harmonyIndex]);
+////			break;
+////		case 2:
+////			DAC_Out(Bassoon64[Index]+Bassoon64[harmonyIndex]);
+////			break;
+////		case 3:
+////			DAC_Out(Oboe64[Index]+Oboe64[harmonyIndex]);
+////	}
+//}
 
 void LED_Init(void) {
 	SYSCTL_RCGCGPIO_R |= 0x00000020;
@@ -117,19 +119,19 @@ void LED_Init(void) {
 int main(void){ 
   PLL_Init(Bus80MHz);              // bus clock at 80 MHz
   LaunchPad_Init();                // activate port F
-	SwitchInit(&playPause, &rewind, &setInst);
+//	SwitchInit(&playPause, &rewind, &setInst);
 	SongInit();
-	DAC_Init(0);
-	SysTickInit(&musicPlay);
-	Timer0A_Init();
-	Timer2A_Init(&harmonyPlay);
+	DAC_Init(0x07FF);
+//	SysTickInit(&musicPlay);
+//	Timer0A_Init();
+//	Timer2A_Init(&harmonyPlay);
 	TExaS_Init(SCOPE_PD2,80000000);
-  EnableInterrupts();
+//  EnableInterrupts();
 	LED_Init();
 	GPIO_PORTF_DATA_R = 0x04;
 	
 
   while(1){
-		WaitForInterrupt();
+		DAC_Out(4095);
 	}
 }

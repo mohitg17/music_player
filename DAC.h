@@ -18,6 +18,6 @@ void DAC_Init(uint16_t data);
 // output to DAC
 // Input: 12-bit data
 // Output: none
-void DAC_Out(uint8_t data);
+void DAC_Out(uint16_t data);
 
 #endif
