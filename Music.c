@@ -25,6 +25,8 @@
 #define quarter 40000000
 #define eighth 20000000
 
+void (*Envelope)(void);
+void (*ResetEnvelope)(void);
 void (*MusicPlay)(void);
 void (*HarmonyPlay)(void);
 
@@ -141,6 +143,7 @@ void Timer0A_Handler(void){
 	TIMER0_TAILR_R = Notes[SongIndex].duration;
 	TIMER2_TAILR_R = Notes[SongIndex].harmony;
 	NVIC_ST_RELOAD_R = Notes[SongIndex].pitch;
+	ResetEnvelope();
 	SongIndex = (SongIndex+1)%SIZE;
 }
 
@@ -150,8 +153,9 @@ void Timer0A_Handler(void){
 //          period in units (1/clockfreq)
 //          priority 0 (highest) to 7 (lowest)
 // Outputs: none
-void Timer2A_Init(void (*harmonyPlay)()){
+void Timer2A_Init(void (*harmonyPlay)(), void(*resetEnvelope)()){
 	HarmonyPlay = harmonyPlay;
+	ResetEnvelope = resetEnvelope;
   SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
   TIMER2_CTL_R = 0x00000000;    // 1) disable timer2A during setup
   TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
@@ -170,4 +174,32 @@ void Timer2A_Init(void (*harmonyPlay)()){
 void Timer2A_Handler(){
   TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge TIMER2A timeout
 	HarmonyPlay();
+}
+
+// ***************** Timer3A_Init ****************
+// Activate Timer3 interrupts to run user task periodically
+// Inputs:  task is a pointer to a user function
+//          period in units (1/clockfreq)
+//          priority 0 (highest) to 7 (lowest)
+// Outputs: none
+void Timer3A_Init(void(*envelope)(void)){
+  SYSCTL_RCGCTIMER_R |= 0x08;   // 0) activate TIMER3
+  Envelope = envelope;         // user function
+  TIMER3_CTL_R = 0x00000000;    // 1) disable TIMER3A during setup
+  TIMER3_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
+  TIMER3_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
+  TIMER3_TAILR_R = 4999999;    // 4) reload value
+  TIMER3_TAPR_R = 0;            // 5) bus clock resolution
+  TIMER3_ICR_R = 0x00000001;    // 6) clear TIMER3A timeout flag
+  TIMER3_IMR_R = 0x00000001;    // 7) arm timeout interrupt
+  NVIC_PRI8_R = (NVIC_PRI8_R&0x00FFFFFF)|(3<<29); // priority  
+// interrupts enabled in the main program after all devices initialized
+// vector number 51, interrupt number 35
+  NVIC_EN1_R = 1<<(35-32);      // 9) enable IRQ 35 in NVIC
+  TIMER3_CTL_R = 0x00000001;    // 10) enable TIMER3A
+}
+
+void Timer3A_Handler(void){
+  TIMER3_ICR_R = TIMER_ICR_TATOCINT;// acknowledge TIMER3A timeout
+  (*Envelope)();                // execute user task
 }

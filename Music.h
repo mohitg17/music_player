@@ -4,7 +4,8 @@
 
 void Timer0A_Init(void);
 void SysTickInit(void (*musicPlay)());
-void Timer2A_Init(void (*harmonyPlay)());
+void Timer2A_Init(void (*harmonyPlay)(), void(*resetEnvelope)());
+void Timer3A_Init(void(*envelope)(void));
 void SongInit(void);
 void setIndexZero(void);
 
