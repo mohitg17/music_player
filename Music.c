@@ -58,12 +58,20 @@ struct Note Notes[SIZE];
 //	C0, C0, D, E, E, D, C0, B0, E0, E0, B0, C0, B0, E0, E0,
 //};
 
+// alternate harmony (all thirds)
+//uint32_t harmony[SIZE] = {
+//	C, C, D1, E1, E1, D1, C, B, E, E, B, C, C, B, B,
+//	C, C, D1, E1, E1, D1, C, B, E, E, B, C, B, E, E,
+//	B, B, C, E, B, C, D1, C, E, B, C, D1, C, B, E, B, G1,
+//	C, C, D1, E1, E1, D1, C, B, E, E, B, C, B, E, E,
+//};
+
 // actual harmony
 uint32_t harmony[SIZE] = {
-	C, C, D1, E1, E1, D1, C, B, E, E, B, C, C, B, B,
-	C, C, D1, E1, E1, D1, C, B, E, E, B, C, B, E, E,
+	C, C, A, C, E1, A, G, F, E, E, B, C, C, B, B,
+	C, C, A, C, E1, D1, C, B, E, E, B, C, B, E, E,
 	B, B, C, E, B, C, D1, C, E, B, C, D1, C, B, E, B, G1,
-	C, C, D1, E1, E1, D1, C, B, E, E, B, C, B, E, E,
+	C, C, A, C, E1, D1, C, B, E, E, B, C, B, E, E,
 };
 
 // octave lower
